@@ -70,3 +70,7 @@ const NavBar = () => {
 export default NavBar
 ```
 
+### Homepage
+create new folder "Home" under components <br/>
+create new file "Hero.tsx" under Home folder <br/>
+
