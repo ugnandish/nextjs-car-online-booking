@@ -173,3 +173,188 @@ const CarsFiltersOption = () => {
 
 export default CarsFiltersOption
 ```
+
+### HyGraph setup and updates 
+
+### GraphQL API Request
+install npm graphql <br/>
+"npm add graphql-request graphql" <br/>
+create new folder "services" under root folder <br />
+create new file "index.tsx" under services folder <br/>
+```
+import request, {gql} from "graphql-request"
+
+export const getCarsList = async() => {
+  const query=gql`
+    query CarLists {
+      carLists {
+        carAvg
+        id
+        name
+        price
+        publishedAt
+        updatedAt
+        createdAt
+        seat
+        image {
+          url
+        }
+        carType
+        carBrand
+      }
+    }
+  `
+  const result = await request('https://api-us-east-1-shared-usea1-02.hygraph.com/v2/clmzx8gld00mm01ug0hjs2njs/master', query)
+  return result;
+}
+```
+and update in page.tsx <br/>
+```
+"use client"
+import CarsFiltersOption from "@/components/Home/CarsFiltersOption";
+import Hero from "@/components/Home/Hero";
+import SearchInput from "@/components/Home/SearchInput";
+import { getCarsList } from "@/services";
+import { useEffect, useState } from "react";
+
+export default function Home() {
+  const [carsList, setCarsList] = useState<any>([])
+
+  useEffect(() => {
+    getCarsList_();
+  },[])
+
+  const getCarsList_ = async() => {
+    const result:any = await getCarsList();
+    setCarsList(result?.carLists)
+  }
+
+  return (
+    <div className="p-5 sm:px-10 md:px-20">
+      <Hero />
+      <SearchInput />
+      <CarsFiltersOption />
+    </div>    
+  )
+}
+```
+
+### Display Cars List
+create a new file "CarsList.tsx" under components/Home <br />
+and add/import to page.tsx <br />
+```
+import React from 'react'
+import CarCard from './CarCard'
+
+const CarsList = (props:any) => {
+  return (
+    <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
+      {props.carsList.map((car:any, index:number) => (
+        <div key={index}>
+          <CarCard car={car} />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export default CarsList
+```
+
+```
+"use client"
+import CarsFiltersOption from "@/components/Home/CarsFiltersOption";
+import CarsList from "@/components/Home/CarsList";
+import Hero from "@/components/Home/Hero";
+import SearchInput from "@/components/Home/SearchInput";
+import { getCarsList } from "@/services";
+import { useEffect, useState } from "react";
+
+export default function Home() {
+  const [carsList, setCarsList] = useState<any>([])
+
+  useEffect(() => {
+    getCarsList_();
+  },[])
+
+  const getCarsList_ = async() => {
+    const result:any = await getCarsList();
+    setCarsList(result?.carLists)
+  }
+
+  return (
+    <div className="p-5 sm:px-10 md:px-20">
+      <Hero />
+      <SearchInput />
+      <CarsFiltersOption />
+      <CarsList carsList={carsList} />
+    </div>    
+  )
+}
+```
+create new file "CarCard.tsx" under components/Home <br/>
+install React Icons <br/>
+"npm install react-icons --save" <br/>
+```
+import React, { useState } from 'react'
+import Image from 'next/image'
+import { FaGasPump } from "react-icons/fa";
+import { MdAirlineSeatReclineNormal } from "react-icons/md";
+import { PiSteeringWheelFill } from "react-icons/pi";
+
+const CarCard = (props:any) => {
+  const [car, setCar] = useState(props.car);
+
+  return (
+    <div className='group bg-gray-50 p-2 sm:p-5 rounded-3xl m-1 sm:m-5 hover:bg-white hover:border-[1px] cursor-pointer duration-50 border-blue-500'>
+      <h2 className='text-[20px] font-medium mb-2'>{car.name}</h2>
+      <h2 className='text-[28px] font-bold mb-2'>
+        <span className='text-[12px] font-light'>$ </span>
+        {car.price}
+        <span className='text-[12px] font-light'> /day</span>
+      </h2>
+      <div className='flex justify-center'>
+        <Image src={car?.image?.url} alt={car.name} width={220} height={200} className='w-[250px] h-[150px] mb-3 object-contain' />
+      </div>
+      <div className='flex justify-around group-hover:hidden'>
+        <div className='text-center text-gray-500'>
+          <PiSteeringWheelFill className="w-full text-[22px] mb-2" />
+          <h2 className='line-clamp-5 text-[14px] font-light'>{car?.carType}</h2>
+        </div>
+        <div className='text-center text-gray-500'>
+          <MdAirlineSeatReclineNormal  className="w-full text-[22px] mb-2" />
+          <h2 className='line-clamp-5 text-[14px] font-light'>{car.seat} Seat</h2>
+        </div>
+        <div className=' text-center text-gray-500 '>
+          <FaGasPump className="w-full text-[22px] mb-2" />
+          <h2 className='line-clamp-5 text-[14px] font-light'>{car.carAvg} MPG</h2>
+        </div>
+      </div>
+      <button className='hidden group-hover:flex bg-gradient-to-r from-blue-400 to-blue-700 p-2 rounded-lg text-white w-full px-5 justify-between'>
+        Rent Now
+        <span className='bg-blue-400 p-1 rounded-md '>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-white">
+            <path fillRule="evenodd" d="M12.97 3.97a.75.75 0 011.06 0l7.5 7.5a.75.75 0 010 1.06l-7.5 7.5a.75.75 0 11-1.06-1.06l6.22-6.22H3a.75.75 0 010-1.5h16.19l-6.22-6.22a.75.75 0 010-1.06z" clipRule="evenodd" />
+          </svg>
+        </span>
+      </button>
+    </div>
+  )
+}
+
+export default CarCard
+```
+
+if image not loaded, then update in "next.config.js" <br/>
+```
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+    images: {
+        domains:['media.graphassets.com']
+    }
+}
+
+module.exports = nextConfig
+```
+
+### Build Filter List Functionality
